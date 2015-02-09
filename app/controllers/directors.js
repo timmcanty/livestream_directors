@@ -8,8 +8,8 @@ var livestreamUrl = 'https://api.new.livestream.com/accounts/';
 
 exports.load = function (req,res,next, id) {
   Director.findOne({ _id: id}, function (err, director) {
-    if (err) { return next(err); }
-    if (!director) { return next(new Error('Director not found')); }
+    if (err) { res.json('Invalid Director ID'); }
+    if (!director) { res.json('Director not found'); }
     req.director = director;
     next();
   });
@@ -18,7 +18,7 @@ exports.load = function (req,res,next, id) {
 exports.index = function (req,res,next) {
   Director.find( function (err, directors) {
     if (err) {
-      return console.error(err);
+      res.json(err);
     } else {
       res.json(directors);
     }
@@ -36,7 +36,7 @@ exports.create = function (req, res, next) {
       json: true
     }, function (error, response, body) {
       if (error) {
-        return next(error);
+        next(error);
       } else {
         var director = new Director( {
           livestream_id: req.body.livestream_id,
@@ -46,13 +46,14 @@ exports.create = function (req, res, next) {
           favorite_moves: []
         });
         director.save( function (err, director) {
-          if (err) { return next(error)};
+          if (err) { res.json(error)};
           res.json(director);
         });
       }
     });
   } else {
-    return next(new Error('Livestream_ID param missing'));
+    res.status(400);
+    res.json('Livestream ID required!');
   }
 };
 
