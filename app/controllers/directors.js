@@ -26,7 +26,6 @@ exports.index = function (req,res,next) {
 };
 
 exports.show = function (req,res,next) {
-  console.log('show');
   res.json(req.director);
 };
 
@@ -59,15 +58,23 @@ exports.create = function (req, res, next) {
 
 exports.update = function (req, res, next) {
   var director = req.director;
-  if (req.body.favorite_camera) {
-    console.log(director);
-    director.favorite_camera = req.body.favorite_camera;
+  var authorization = req.headers['authorization'];
+
+  if (!director.isAuthorized(authorization)) {
+    res.json({'error': 'must be authorized to edit'});
+  } else {
+
+    if (req.body.favorite_camera) {
+      director.favorite_camera = req.body.favorite_camera;
+    }
+
+    if (req.body.favorite_movies) {
+      director.favorite_movies = req.body.favorite_movies;
+    }
+
+    director.save( function (err, director) {
+      if (err) { next(err);}
+      res.json(director);
+    });
   }
-  if (req.body.favorite_movies) {
-    director.favorite_movies = req.body.favorite_movies;
-  }
-  director.save( function (err, director) {
-    if (err) { next(err);}
-    res.json(director);
-  });
 };
