@@ -7,7 +7,7 @@ var livestreamUrl = 'https://api.new.livestream.com/accounts/';
 
 
 exports.load = function (req,res,next, id) {
-  Director.load(id, function (err, article) {
+  Director.findOne({ _id: id}, function (err, director) {
     if (err) { return next(err); }
     if (!director) { return next(new Error('Director not found')); }
     req.director = director;
@@ -25,8 +25,9 @@ exports.index = function (req,res,next) {
   });
 };
 
-exports.show = function (req,res,next, id) {
-  res.json(req.article);
+exports.show = function (req,res,next) {
+  console.log('show');
+  res.json(req.director);
 };
 
 exports.create = function (req, res, next) {
@@ -54,4 +55,19 @@ exports.create = function (req, res, next) {
   } else {
     return next(new Error('Livestream_ID param missing'));
   }
+};
+
+exports.update = function (req, res, next) {
+  var director = req.director;
+  if (req.body.favorite_camera) {
+    console.log(director);
+    director.favorite_camera = req.body.favorite_camera;
+  }
+  if (req.body.favorite_movies) {
+    director.favorite_movies = req.body.favorite_movies;
+  }
+  director.save( function (err, director) {
+    if (err) { next(err);}
+    res.json(director);
+  });
 };

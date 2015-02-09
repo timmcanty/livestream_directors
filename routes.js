@@ -14,13 +14,18 @@ module.exports = function (app) {
   app.use(cookieParser());
   app.use(express.static(path.join(__dirname, 'public')));
 
-  // Director Routes
   app.param('id', directors.load);
-  app.get('/directors', directors.index);
-  app.get('/directors/:id', directors.show);
-  app.post('/directors', directors.create);
 
-  // app.put('/directors/:id', directors.update);
+  app.get('/test/:something', function (req, res) { res.json({});})
+
+  app.route('/directors')
+    .get(directors.index)
+    .post(directors.create);
+
+
+  app.route('/directors/:id')
+    .get(directors.show)
+    .put(directors.update);
 
   // catch 404 and forward to error handler
   app.use(function(req, res, next) {
