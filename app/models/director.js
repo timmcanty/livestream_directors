@@ -1,4 +1,4 @@
-require('mongoose');
+var mongoose = require('mongoose');
 
 var directorSchema = mongoose.Schema({
   full_name: { type: String, required: true, index: {unique: true}},
