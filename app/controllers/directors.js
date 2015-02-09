@@ -30,17 +30,16 @@ exports.show = function (req,res,next, id) {
 };
 
 exports.create = function (req, res, next) {
-  console.log(req);
-  if (req.params.livestream_id) {
+  if (req.body.livestream_id) {
     request({
-      url: livestreamUrl + req.params.livestream_id,
+      url: livestreamUrl + req.body.livestream_id,
       json: true
     }, function (error, response, body) {
       if (error) {
         return next(error);
       } else {
         var director = new Director( {
-          livestream_id: req.params.livestream_id,
+          livestream_id: req.body.livestream_id,
           full_name: body.full_name,
           dob: body.dob,
           favorite_camera: '',
