@@ -5,11 +5,18 @@ var request = require('request');
 // Livestream URL
 var livestreamUrl = 'https://api.new.livestream.com/accounts/';
 
+// Error Rendering
+
+function sendError (statusCode, message, res) {
+  res.status(statusCode);
+  res.json(message);
+};
+
 
 exports.load = function (req,res,next, id) {
   Director.findOne({ _id: id}, function (err, director) {
-    if (err) { res.json('Invalid Director ID'); }
-    if (!director) { res.json('Director not found'); }
+    if (err) { sendError(500, 'Failure communicating with Mongo', res); }
+    if (!director) { sendError(400, 'Director not found', res); }
     req.director = director;
     next();
   });
@@ -18,7 +25,7 @@ exports.load = function (req,res,next, id) {
 exports.index = function (req,res,next) {
   Director.find( function (err, directors) {
     if (err) {
-      res.json(err);
+      sendError(500, 'Failure communicating with Mongo', res);
     } else {
       res.json(directors);
     }
@@ -36,8 +43,7 @@ exports.create = function (req, res, next) {
       json: true
     }, function (error, response, body) {
       if (error) {
-        res.status(503);
-        res.json('Unable to connect to Livestream API');
+        sendError(503, 'Unable to connect to Livestream API', res);
       } else {
         var director = new Director( {
           livestream_id: req.body.livestream_id,
@@ -48,20 +54,14 @@ exports.create = function (req, res, next) {
         });
         director.save( function (err, director) {
           if (err) {
-            res.status(422);
-            if (err.name == 'MongoError') {
-              res.json('Account already created!');
-            } else {
-              res.json('No Livestream Account is Associated with this ID');
-            }
+            sendError(422, (err.name == 'MongoError' ? 'Account already created!' : 'No LS Account Associated with ID'), res)
           }
           res.json(director);
         });
       }
     });
   } else {
-    res.status(400);
-    res.json('Livestream ID required!');
+    sendError(400,'Livestream ID required!', res);
   }
 };
 
@@ -70,8 +70,7 @@ exports.update = function (req, res, next) {
   var authorization = req.headers['authorization'];
 
   if (!director.isAuthorized(authorization)) {
-    res.status(401);
-    res.json('Must be authorized to edit');
+    sendError(401, 'Must be authorized to edit', res);
   } else {
 
     if (req.body.favorite_camera) {
@@ -79,19 +78,16 @@ exports.update = function (req, res, next) {
       if (typeof req.body.favorite_camera ===  'string') {
         director.favorite_camera = req.body.favorite_camera;
       } else {
-        res.status(422);
-        res.json('favorite_camera must be a string');
+        sendError(422, 'favorite_camera must be a string!', res);
         return;
       }
     }
 
     if (req.body.favorite_movies) {
-      console.log(req.body.favorite_movies.prototype);
       if ([].slice.call(req.body.favorite_movies) instanceof Array) {
         director.favorite_movies = req.body.favorite_movies;
       } else {
-        res.status(422);
-        res.json('favorite_movies must be an array');
+        sendError(422, 'favorite_movies must be an array!', res);
         return;
       }
 
@@ -99,8 +95,7 @@ exports.update = function (req, res, next) {
 
     director.save( function (err, director) {
       if (err) {
-        res.status(422);
-        res.json('Director failed to save');
+        sendError(422, 'Director failed to save!', res);
       }
       res.json(director);
     });
