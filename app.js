@@ -13,8 +13,4 @@ mongoose.connect('mongodb://localhost/27018')
 
 var db = mongoose.connection;
 
-db.once('open', function () {
-  console.log('mongoose connected');
-})
-
 module.exports = app;

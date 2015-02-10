@@ -12,6 +12,7 @@ var directorSchema = mongoose.Schema({
 directorSchema.methods.isAuthorized = function (authString) {
   var encryptedString = authString;
   var authPieces = encryptedString.split(' ');
+  console.log(authPieces[1]);
   if (authPieces[0] != 'Bearer') {
     return false;
   }

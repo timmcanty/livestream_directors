@@ -36,7 +36,9 @@ exports.create = function (req, res, next) {
       json: true
     }, function (error, response, body) {
       if (error) {
-        next(error);
+        console.log('1');
+        res.status(503);
+        res.json('Unable to connect to Livestream API');
       } else {
         var director = new Director( {
           livestream_id: req.body.livestream_id,
@@ -46,12 +48,20 @@ exports.create = function (req, res, next) {
           favorite_moves: []
         });
         director.save( function (err, director) {
-          if (err) { res.json(error)};
+          if (err) {
+            res.status(422);
+            if (err.name == 'MongoError') {
+              res.json('Account already created!');
+            } else {
+              res.json('No Livestream Account is Associated with this ID');
+            }
+          }
           res.json(director);
         });
       }
     });
   } else {
+    console.log('3');
     res.status(400);
     res.json('Livestream ID required!');
   }
@@ -62,19 +72,35 @@ exports.update = function (req, res, next) {
   var authorization = req.headers['authorization'];
 
   if (!director.isAuthorized(authorization)) {
-    res.json({'error': 'must be authorized to edit'});
+    res.json('Must be authorized to edit');
   } else {
 
     if (req.body.favorite_camera) {
-      director.favorite_camera = req.body.favorite_camera;
+      if (req.body.favorite_camera instanceof String) {
+        director.favorite_camera = req.body.favorite_camera;
+      } else {
+        res.status(422);
+        res.json('favorite_camera must be a string');
+        return;
+      }
     }
 
     if (req.body.favorite_movies) {
-      director.favorite_movies = req.body.favorite_movies;
+      if (req.body.favorite_moves instanceof Array) {
+        director.favorite_movies = req.body.favorite_movies;
+      } else {
+        res.status(422);
+        res.json('favorite_movies must be an array');
+        return;
+      }
+
     }
 
     director.save( function (err, director) {
-      if (err) { next(err);}
+      if (err) {
+        res.status(422);
+        res.json('Director failed to save');
+      }
       res.json(director);
     });
   }
