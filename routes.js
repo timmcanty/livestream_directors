@@ -16,7 +16,6 @@ module.exports = function (app) {
 
   app.param('id', directors.load);
 
-  app.get('/test/:something', function (req, res) { res.json({});})
 
   app.route('/directors')
     .get(directors.index)

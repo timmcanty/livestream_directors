@@ -36,7 +36,6 @@ exports.create = function (req, res, next) {
       json: true
     }, function (error, response, body) {
       if (error) {
-        console.log('1');
         res.status(503);
         res.json('Unable to connect to Livestream API');
       } else {
@@ -61,7 +60,6 @@ exports.create = function (req, res, next) {
       }
     });
   } else {
-    console.log('3');
     res.status(400);
     res.json('Livestream ID required!');
   }
@@ -72,11 +70,13 @@ exports.update = function (req, res, next) {
   var authorization = req.headers['authorization'];
 
   if (!director.isAuthorized(authorization)) {
+    res.status(401);
     res.json('Must be authorized to edit');
   } else {
 
     if (req.body.favorite_camera) {
-      if (req.body.favorite_camera instanceof String) {
+
+      if (typeof req.body.favorite_camera ===  'string') {
         director.favorite_camera = req.body.favorite_camera;
       } else {
         res.status(422);
@@ -86,7 +86,8 @@ exports.update = function (req, res, next) {
     }
 
     if (req.body.favorite_movies) {
-      if (req.body.favorite_moves instanceof Array) {
+      console.log(req.body.favorite_movies.prototype);
+      if ([].slice.call(req.body.favorite_movies) instanceof Array) {
         director.favorite_movies = req.body.favorite_movies;
       } else {
         res.status(422);
